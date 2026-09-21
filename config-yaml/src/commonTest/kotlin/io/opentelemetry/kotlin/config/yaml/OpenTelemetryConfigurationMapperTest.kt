@@ -8,6 +8,7 @@ import io.opentelemetry.kotlin.behavior.LogRecordProcessorBehavior
 import io.opentelemetry.kotlin.behavior.LoggerProviderBehavior
 import io.opentelemetry.kotlin.behavior.OpenTelemetryBehavior
 import io.opentelemetry.kotlin.behavior.SamplerBehavior
+import io.opentelemetry.kotlin.behavior.SpanExporterBehavior
 import io.opentelemetry.kotlin.behavior.SpanLimitsBehavior
 import io.opentelemetry.kotlin.behavior.SpanProcessorBehavior
 import io.opentelemetry.kotlin.behavior.TracerProviderBehavior
@@ -100,7 +101,7 @@ internal class OpenTelemetryConfigurationMapperTest {
         assertEquals(
             OpenTelemetryBehavior(
                 tracerProvider = TracerProviderBehavior(
-                    processor = SpanProcessorBehavior(console = console),
+                    processor = SpanProcessorBehavior.Simple(exporter = SpanExporterBehavior.Console),
                 ),
                 loggerProvider = LoggerProviderBehavior(
                     processor = LogRecordProcessorBehavior(console = console),

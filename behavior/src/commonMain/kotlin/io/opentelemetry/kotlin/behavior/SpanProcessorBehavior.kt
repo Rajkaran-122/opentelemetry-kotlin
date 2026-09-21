@@ -8,16 +8,35 @@ import io.opentelemetry.kotlin.ExperimentalApi
  * https://opentelemetry.io/docs/specs/otel/trace/sdk/#spanprocessor
  */
 @ExperimentalApi
-data class SpanProcessorBehavior(
+sealed class SpanProcessorBehavior : Behavior<SpanProcessorBehavior> {
+
+    abstract val exporter: SpanExporterBehavior?
 
     /**
-     * Console span exporter. Selecting it is the whole configuration.
+     * Simple span processor.
+     *
+     * https://opentelemetry.io/docs/specs/otel/trace/sdk/#simpleprocessor
      */
-    val console: ConsoleExporterBehavior? = null,
+    data class Simple(
+        override val exporter: SpanExporterBehavior? = null,
+    ) : SpanProcessorBehavior() {
+        override fun mergeWith(higher: SpanProcessorBehavior): SpanProcessorBehavior {
+            if (higher !is Simple) return higher
+            return copy(exporter = mergeNode(exporter, higher.exporter))
+        }
+    }
 
-) : Behavior<SpanProcessorBehavior> {
-
-    override fun mergeWith(higher: SpanProcessorBehavior): SpanProcessorBehavior = copy(
-        console = mergeNode(console, higher.console),
-    )
+    /**
+     * Batch span processor.
+     *
+     * https://opentelemetry.io/docs/specs/otel/trace/sdk/#batchprocessor
+     */
+    data class Batch(
+        override val exporter: SpanExporterBehavior? = null,
+    ) : SpanProcessorBehavior() {
+        override fun mergeWith(higher: SpanProcessorBehavior): SpanProcessorBehavior {
+            if (higher !is Batch) return higher
+            return copy(exporter = mergeNode(exporter, higher.exporter))
+        }
+    }
 }
