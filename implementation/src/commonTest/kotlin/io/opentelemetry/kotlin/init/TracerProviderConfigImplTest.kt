@@ -4,6 +4,7 @@ import io.opentelemetry.kotlin.assertHasSdkDefaultAttributes
 import io.opentelemetry.kotlin.attributes.AttributesModel
 import io.opentelemetry.kotlin.attributes.DEFAULT_ATTRIBUTE_LIMIT
 import io.opentelemetry.kotlin.behavior.ConsoleExporterBehavior
+import io.opentelemetry.kotlin.behavior.SpanExporterBehavior
 import io.opentelemetry.kotlin.behavior.SpanLimitsBehavior
 import io.opentelemetry.kotlin.behavior.SpanProcessorBehavior
 import io.opentelemetry.kotlin.clock.FakeClock
@@ -129,7 +130,7 @@ internal class TracerProviderConfigImplTest {
         val cfg = TracerProviderConfigImpl(clock, NoopSdkErrorHandler).generateTracingConfig(
             base,
             noSpanLimits,
-            SpanProcessorBehavior(console = ConsoleExporterBehavior()),
+            SpanProcessorBehavior.Simple(exporter = SpanExporterBehavior.Console),
         )
         assertNotNull(cfg.processor)
     }
@@ -142,7 +143,7 @@ internal class TracerProviderConfigImplTest {
         }.generateTracingConfig(
             base,
             noSpanLimits,
-            SpanProcessorBehavior(console = ConsoleExporterBehavior()),
+            SpanProcessorBehavior.Simple(exporter = SpanExporterBehavior.Console),
         )
         assertSame(dslProcessor, cfg.processor)
     }
