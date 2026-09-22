@@ -21,7 +21,9 @@ sealed class SpanProcessorBehavior : Behavior<SpanProcessorBehavior> {
         override val exporter: SpanExporterBehavior? = null,
     ) : SpanProcessorBehavior() {
         override fun mergeWith(higher: SpanProcessorBehavior): SpanProcessorBehavior {
-            if (higher !is Simple) return higher
+            if (higher !is Simple) {
+                return higher
+            }
             return copy(exporter = mergeNode(exporter, higher.exporter))
         }
     }
@@ -35,7 +37,9 @@ sealed class SpanProcessorBehavior : Behavior<SpanProcessorBehavior> {
         override val exporter: SpanExporterBehavior? = null,
     ) : SpanProcessorBehavior() {
         override fun mergeWith(higher: SpanProcessorBehavior): SpanProcessorBehavior {
-            if (higher !is Batch) return higher
+            if (higher !is Batch) {
+                return higher
+            }
             return copy(exporter = mergeNode(exporter, higher.exporter))
         }
     }
