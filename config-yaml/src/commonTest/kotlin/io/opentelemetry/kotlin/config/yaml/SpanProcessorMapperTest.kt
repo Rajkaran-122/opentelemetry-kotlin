@@ -41,5 +41,30 @@ internal class SpanProcessorMapperTest {
         assertNull(processors.toExporterBehavior())
     }
 
+    @Test
+    fun usesFirstProcessorWhenMultiplePresent() {
+        val processors = listOf(
+            SpanProcessor(simple = SimpleSpanProcessor(exporter = consoleExporter())),
+            SpanProcessor(batch = BatchSpanProcessor(exporter = consoleExporter())),
+        )
+        assertEquals(SpanExporterBehavior.Console, processors.toExporterBehavior())
+    }
+
+    @Test
+    fun unsupportedExporterReturnsNull() {
+        val processors = listOf(
+            SpanProcessor(simple = SimpleSpanProcessor(exporter = SpanExporter())),
+        )
+        assertNull(processors.toExporterBehavior())
+    }
+
+    @Test
+    fun processorWithoutExporterReturnsNull() {
+        val processors = listOf(
+            SpanProcessor(simple = SimpleSpanProcessor(exporter = SpanExporter())),
+        )
+        assertNull(processors.toExporterBehavior())
+    }
+
     private fun consoleExporter() = SpanExporter(console = ConsoleExporter())
 }

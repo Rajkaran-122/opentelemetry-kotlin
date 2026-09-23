@@ -13,6 +13,7 @@ import io.opentelemetry.kotlin.behavior.SpanLimitsBehavior
 import io.opentelemetry.kotlin.behavior.SpanProcessorBehavior
 import io.opentelemetry.kotlin.behavior.TracerProviderBehavior
 import io.opentelemetry.kotlin.config.schema.model.AlwaysOffSampler
+import io.opentelemetry.kotlin.config.schema.model.BatchSpanProcessor
 import io.opentelemetry.kotlin.config.schema.model.ConsoleExporter
 import io.opentelemetry.kotlin.config.schema.model.IdGenerator
 import io.opentelemetry.kotlin.config.schema.model.LogRecordExporter
@@ -31,6 +32,7 @@ import io.opentelemetry.kotlin.framework.loadTestFixture
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertIs
 
 internal class OpenTelemetryConfigurationMapperTest {
 
@@ -150,6 +152,40 @@ internal class OpenTelemetryConfigurationMapperTest {
             config.toBehavior().tracerProvider?.idGenerator,
         )
     }
+
+    @Test
+    fun mapsSimpleProcessorWithConsoleExporter() {
+        val config = OpenTelemetryConfiguration(
+            fileFormat = FILE_FORMAT,
+            tracerProvider = TracerProvider(
+                processors = listOf(
+                    SpanProcessor(simple = SimpleSpanProcessor(exporter = consoleExporter())),
+                ),
+            ),
+        )
+
+        val processor = config.toBehavior().tracerProvider?.processor
+        assertIs<SpanProcessorBehavior.Simple>(processor)
+        assertEquals(SpanExporterBehavior.Console, processor.exporter)
+    }
+
+    @Test
+    fun mapsBatchProcessorWithConsoleExporter() {
+        val config = OpenTelemetryConfiguration(
+            fileFormat = FILE_FORMAT,
+            tracerProvider = TracerProvider(
+                processors = listOf(
+                    SpanProcessor(batch = BatchSpanProcessor(exporter = consoleExporter())),
+                ),
+            ),
+        )
+
+        val processor = config.toBehavior().tracerProvider?.processor
+        assertIs<SpanProcessorBehavior.Batch>(processor)
+        assertEquals(SpanExporterBehavior.Console, processor.exporter)
+    }
+
+    private fun consoleExporter() = SpanExporter(console = ConsoleExporter())
 
     private companion object {
         const val GOLDEN_FILE = "minimal_config.yaml"

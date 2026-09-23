@@ -73,4 +73,50 @@ internal class SpanProcessorBehaviorTest {
         val result = lower.mergeWith(higher)
         assertTrue(result is SpanProcessorBehavior.Batch)
     }
+
+    @Test
+    fun simpleWithoutExporterMergesWithSimpleWithExporter() {
+        val exporter = SpanExporterBehavior.Console
+        val result = SpanProcessorBehavior.Simple().mergeWith(SpanProcessorBehavior.Simple(exporter = exporter))
+        assertEquals(exporter, result.exporter)
+    }
+
+    @Test
+    fun batchWithoutExporterMergesWithBatchWithExporter() {
+        val exporter = SpanExporterBehavior.Console
+        val result = SpanProcessorBehavior.Batch().mergeWith(SpanProcessorBehavior.Batch(exporter = exporter))
+        assertEquals(exporter, result.exporter)
+    }
+
+    @Test
+    fun simpleWithOtlpExporterMergesWithSimpleWithConsoleExporter() {
+        val otlp = SpanExporterBehavior.OtlpHttp(endpoint = "https://example.com")
+        val console = SpanExporterBehavior.Console
+        val result = SpanProcessorBehavior.Simple(exporter = otlp).mergeWith(SpanProcessorBehavior.Simple(exporter = console))
+        assertEquals(otlp, result.exporter)
+    }
+
+    @Test
+    fun simpleWithConsoleExporterMergesWithSimpleWithOtlpExporter() {
+        val otlp = SpanExporterBehavior.OtlpHttp(endpoint = "https://example.com")
+        val console = SpanExporterBehavior.Console
+        val result = SpanProcessorBehavior.Simple(exporter = console).mergeWith(SpanProcessorBehavior.Simple(exporter = otlp))
+        assertEquals(otlp, result.exporter)
+    }
+
+    @Test
+    fun batchWithOtlpExporterMergesWithBatchWithConsoleExporter() {
+        val otlp = SpanExporterBehavior.OtlpHttp(endpoint = "https://example.com")
+        val console = SpanExporterBehavior.Console
+        val result = SpanProcessorBehavior.Batch(exporter = otlp).mergeWith(SpanProcessorBehavior.Batch(exporter = console))
+        assertEquals(otlp, result.exporter)
+    }
+
+    @Test
+    fun batchWithConsoleExporterMergesWithBatchWithOtlpExporter() {
+        val otlp = SpanExporterBehavior.OtlpHttp(endpoint = "https://example.com")
+        val console = SpanExporterBehavior.Console
+        val result = SpanProcessorBehavior.Batch(exporter = console).mergeWith(SpanProcessorBehavior.Batch(exporter = otlp))
+        assertEquals(otlp, result.exporter)
+    }
 }

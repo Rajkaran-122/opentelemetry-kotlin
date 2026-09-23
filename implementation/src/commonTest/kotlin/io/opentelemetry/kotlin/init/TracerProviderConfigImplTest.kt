@@ -135,6 +135,46 @@ internal class TracerProviderConfigImplTest {
     }
 
     @Test
+    fun testNullProcessorBehaviorReturnsNullProcessor() {
+        val cfg = TracerProviderConfigImpl(clock, NoopSdkErrorHandler).generateTracingConfig(
+            base,
+            noSpanLimits,
+            processorBehavior = null,
+        )
+        assertNull(cfg.processor)
+    }
+
+    @Test
+    fun testNonConsoleExporterReturnsNullProcessor() {
+        val cfg = TracerProviderConfigImpl(clock, NoopSdkErrorHandler).generateTracingConfig(
+            base,
+            noSpanLimits,
+            SpanProcessorBehavior.Simple(exporter = SpanExporterBehavior.OtlpHttp()),
+        )
+        assertNull(cfg.processor)
+    }
+
+    @Test
+    fun testBatchProcessorWithConsoleExporterInstallsBatchProcessor() {
+        val cfg = TracerProviderConfigImpl(clock, NoopSdkErrorHandler).generateTracingConfig(
+            base,
+            noSpanLimits,
+            SpanProcessorBehavior.Batch(exporter = SpanExporterBehavior.Console),
+        )
+        assertNotNull(cfg.processor)
+    }
+
+    @Test
+    fun testProcessorWithoutExporterReturnsNull() {
+        val cfg = TracerProviderConfigImpl(clock, NoopSdkErrorHandler).generateTracingConfig(
+            base,
+            noSpanLimits,
+            SpanProcessorBehavior.Simple(exporter = null),
+        )
+        assertNull(cfg.processor)
+    }
+
+    @Test
     fun testDslExportTakesPrecedenceOverConsoleBehavior() {
         val dslProcessor = FakeSpanProcessor()
         val cfg = TracerProviderConfigImpl(clock, NoopSdkErrorHandler).apply {
