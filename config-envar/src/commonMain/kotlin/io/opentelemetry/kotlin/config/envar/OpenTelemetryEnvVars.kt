@@ -7,6 +7,7 @@ import io.opentelemetry.kotlin.behavior.SpanProcessorBehavior
 import io.opentelemetry.kotlin.behavior.TracerProviderBehavior
 import io.opentelemetry.kotlin.config.envar.logging.LogLimitsEnvVars
 import io.opentelemetry.kotlin.config.envar.logging.LogsExporterEnvVars
+import io.opentelemetry.kotlin.config.envar.reader.ReportingEnvVarReader
 import io.opentelemetry.kotlin.config.envar.tracing.SamplerEnvVars
 import io.opentelemetry.kotlin.config.envar.tracing.SpanLimitsEnvVars
 import io.opentelemetry.kotlin.config.envar.tracing.TracesExporterEnvVars
@@ -18,15 +19,14 @@ import io.opentelemetry.kotlin.config.envar.tracing.TracesExporterEnvVars
  */
 @ExperimentalApi
 class OpenTelemetryEnvVars(
-    private val reader: EnvVarReader,
-    private val onWarning: (String) -> Unit = {},
+    private val reader: ReportingEnvVarReader,
 ) {
 
     fun toBehavior(): OpenTelemetryBehavior = OpenTelemetryBehavior(
         attributeLimits = AttributeLimitsEnvVars(reader).toBehavior(),
         tracerProvider = TracerProviderBehavior(
             spanLimits = SpanLimitsEnvVars(reader).toBehavior(),
-            sampler = SamplerEnvVars(reader, onWarning).toBehavior(),
+            sampler = SamplerEnvVars(reader).toBehavior(),
             processor = toProcessorBehavior(),
         ),
         loggerProvider = LoggerProviderBehavior(
@@ -36,7 +36,7 @@ class OpenTelemetryEnvVars(
     )
 
     private fun toProcessorBehavior(): SpanProcessorBehavior? {
-        val exporter = TracesExporterEnvVars(reader, onWarning).toBehavior()
+        val exporter = TracesExporterEnvVars(reader).toBehavior()
         return exporter?.let { SpanProcessorBehavior.Simple(exporter = it) }
     }
 }

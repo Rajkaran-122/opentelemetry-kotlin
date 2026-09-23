@@ -18,4 +18,21 @@ sealed class SpanExporterBehavior : Behavior<SpanExporterBehavior> {
     data object Console : SpanExporterBehavior() {
         override fun mergeWith(higher: SpanExporterBehavior): SpanExporterBehavior = higher
     }
+
+    /**
+     * OTLP HTTP exporter.
+     *
+     * https://opentelemetry.io/docs/specs/otel/protocol/exporter/
+     */
+    data class OtlpHttp(
+        val endpoint: String? = null,
+        val timeout: Int? = null,
+    ) : SpanExporterBehavior() {
+        override fun mergeWith(higher: SpanExporterBehavior): SpanExporterBehavior {
+            if (higher is OtlpHttp) {
+                return higher
+            }
+            return this
+        }
+    }
 }
