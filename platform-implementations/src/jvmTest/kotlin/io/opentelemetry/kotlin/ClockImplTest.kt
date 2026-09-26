@@ -1,8 +1,8 @@
 package io.opentelemetry.kotlin
 
 import kotlin.test.Test
-import kotlin.test.assertTrue
 import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
 
 internal class ClockImplTest {
 
