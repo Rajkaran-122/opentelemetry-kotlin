@@ -1,8 +1,6 @@
 package io.opentelemetry.kotlin.init
 
 import io.opentelemetry.kotlin.attributes.DEFAULT_ATTRIBUTE_LIMIT
-import io.opentelemetry.kotlin.behavior.ConsoleExporterBehavior
-import io.opentelemetry.kotlin.behavior.LogExporterBehavior
 import io.opentelemetry.kotlin.behavior.LogLimitsBehavior
 import io.opentelemetry.kotlin.behavior.LogRecordProcessorBehavior
 import io.opentelemetry.kotlin.clock.FakeClock
