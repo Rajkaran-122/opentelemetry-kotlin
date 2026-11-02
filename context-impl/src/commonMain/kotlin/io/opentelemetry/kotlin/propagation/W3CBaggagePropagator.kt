@@ -23,7 +23,6 @@ public object W3CBaggagePropagator : TextMapPropagator {
     private const val SPACE = ' '
     private const val HTAB = '\t'
     private const val MAX_HEADER_BYTES = 8192
-    private const val MAX_ENTRY_BYTES = 4096
 
     private val FIELDS = listOf(FIELD)
 
@@ -61,9 +60,6 @@ public object W3CBaggagePropagator : TextMapPropagator {
 
     private fun encodeIfFits(name: String, entry: BaggageEntry, currentLength: Int): String? {
         val piece = encodeEntry(name, entry.value, entry.metadata.value)
-        if (piece.length > MAX_ENTRY_BYTES) {
-            return null
-        }
         val separator = when (currentLength) {
             0 -> 0
             else -> 1
@@ -94,15 +90,15 @@ public object W3CBaggagePropagator : TextMapPropagator {
     }
 
     /**
-     * Trims and decodes [rawElement], honoring the per-entry size limit and [budget] for the
-     * whole header. Returns `null` for elements that are empty, malformed, or too large.
+     * Trims and decodes [rawElement], honoring the [budget] for the whole header.
+     * Returns `null` for elements that are empty or malformed.
      * Malformed entries do not consume any of the header's budget, but an oversized element
      * permanently exhausts [budget] so later, smaller elements are skipped too -- matching how a
      * real client would stop appending once the header is full.
      */
     private fun parseElementIfFits(rawElement: String, budget: HeaderBudget): ParsedEntry? {
         val element = rawElement.trim(SPACE, HTAB)
-        if (element.isEmpty() || element.length > MAX_ENTRY_BYTES) {
+        if (element.isEmpty()) {
             return null
         }
         if (!budget.hasRoomFor(element.length)) {

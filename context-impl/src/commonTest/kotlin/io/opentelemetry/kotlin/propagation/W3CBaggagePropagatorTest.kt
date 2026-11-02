@@ -322,6 +322,66 @@ internal class W3CBaggagePropagatorTest {
         assertEquals("café 1!2@3", extracted.getValue("session"))
     }
 
+    @Test
+    fun `large member under total limit is not dropped`() {
+        // Member is 5000 bytes, which exceeds the old 4096-byte per-member limit
+        // but should be kept since total header would be under 8192 bytes
+        val longValue = "x".repeat(5000)
+        val baggage = BaggageImpl.EMPTY.set("key", longValue)
+        val headerSize = extractedHeaderSize(baggage)
+        assertTrue(headerSize > 4096, "Header should exceed old per-member limit")
+        assertTrue(headerSize <= 8192, "Header should be under total limit")
+        
+        val carrier = injectInto(baggage)
+        val extracted = extract(carrier["baggage"]!!)
+        assertEquals(longValue, extracted.getValue("key"))
+    }
+
+    @Test
+    fun `member at total limit boundary is kept`() {
+        // Create a member that exactly fills the header (minus delimiters)
+        val value = "x".repeat(8186) // 8186 + "key=" = 8190, which exceeds limit
+        val shorterValue = "x".repeat(8182) // 8182 + "key=" = 8186, within limit
+        val baggage = BaggageImpl.EMPTY.set("key", shorterValue)
+        val carrier = injectInto(baggage)
+        val extracted = extract(carrier["baggage"]!!)
+        assertEquals(shorterValue, extracted.getValue("key"))
+    }
+
+    @Test
+    fun `member exceeding total limit is dropped`() {
+        // Create a member that exceeds the total header limit
+        val longValue = "x".repeat(9000)
+        val baggage = BaggageImpl.EMPTY.set("key", longValue)
+        val carrier = injectInto(baggage)
+        assertTrue(carrier.isEmpty(), "Member exceeding total limit should be dropped")
+    }
+
+    @Test
+    fun `multiple members under total limit are all kept`() {
+        val baggage = BaggageImpl.EMPTY
+            .set("key1", "x".repeat(4000))
+            .set("key2", "y".repeat(4000))
+        val headerSize = extractedHeaderSize(baggage)
+        assertTrue(headerSize <= 8192, "Total should be under limit")
+        
+        val carrier = injectInto(baggage)
+        val extracted = extract(carrier["baggage"]!!)
+        assertEquals("x".repeat(4000), extracted.getValue("key1"))
+        assertEquals("y".repeat(4000), extracted.getValue("key2"))
+    }
+
+    @Test
+    fun `valid member alongside oversized member`() {
+        val baggage = BaggageImpl.EMPTY
+            .set("small", "value")
+            .set("large", "x".repeat(9000))
+        val carrier = injectInto(baggage)
+        val extracted = extract(carrier["baggage"]!!)
+        assertEquals("value", extracted.getValue("small"))
+        assertNull(extracted.getValue("large"))
+    }
+
     private fun injectInto(baggage: Baggage): MutableMap<String, String> {
         val carrier = mutableMapOf<String, String>()
         val ctx: Context = contextFactory.root().storeBaggage(baggage)
