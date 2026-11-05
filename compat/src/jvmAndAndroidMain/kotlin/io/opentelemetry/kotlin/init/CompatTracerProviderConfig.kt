@@ -122,7 +122,7 @@ internal class CompatTracerProviderConfig(
         }
     }
 
-    private val newSamplerDsl: SamplerConfigDsl = CompatSamplerConfig()
+    private val newSamplerDsl: SamplerConfigDsl = CompatSamplerConfig(sdkErrorHandler)
 
     private val defaultSampler: Sampler = newSamplerDsl.parentBased(root = newSamplerDsl.alwaysOn())
 

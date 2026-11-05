@@ -3,6 +3,7 @@ package io.opentelemetry.kotlin.tracing.sampling
 import io.opentelemetry.kotlin.attributes.CompatAttributesModel
 import io.opentelemetry.kotlin.behavior.SamplerBehavior
 import io.opentelemetry.kotlin.context.Context
+import io.opentelemetry.kotlin.error.NoopSdkErrorHandler
 import io.opentelemetry.kotlin.factory.CompatContextFactory
 import io.opentelemetry.kotlin.factory.hexToByteArray
 import io.opentelemetry.kotlin.tracing.SpanKind
@@ -16,7 +17,7 @@ internal class CompatSamplerBehaviorMappingTest {
 
     private val contextFactory = CompatContextFactory()
 
-    private val samplerDsl = CompatSamplerConfig()
+    private val samplerDsl = CompatSamplerConfig(NoopSdkErrorHandler)
 
     private fun contextWithParent(sampled: Boolean, isRemote: Boolean): Context {
         val parentSpanContext = createSpanContext("12345678901234567890123456789012", "1234567890123456") {

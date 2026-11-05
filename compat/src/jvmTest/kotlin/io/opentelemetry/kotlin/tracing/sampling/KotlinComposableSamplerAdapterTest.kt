@@ -8,6 +8,7 @@ import io.opentelemetry.kotlin.aliases.OtelJavaSpanKind
 import io.opentelemetry.kotlin.aliases.OtelJavaTraceState
 import io.opentelemetry.kotlin.attributes.AttributeContainer
 import io.opentelemetry.kotlin.attributes.CompatAttributesModel
+import io.opentelemetry.kotlin.error.NoopSdkErrorHandler
 import io.opentelemetry.kotlin.tracing.TraceState
 import io.opentelemetry.kotlin.tracing.ext.toOtelKotlinSpanKind
 import org.junit.Test
@@ -23,7 +24,7 @@ internal class KotlinComposableSamplerAdapterTest {
     @Test
     fun `description delegates to the kotlin sampler`() {
         val delegate = FakeComposableSampler(description = "custom description")
-        val adapter = KotlinComposableSamplerAdapter(delegate)
+        val adapter = KotlinComposableSamplerAdapter(delegate, NoopSdkErrorHandler)
 
         assertEquals("custom description", adapter.getDescription())
     }
@@ -31,7 +32,7 @@ internal class KotlinComposableSamplerAdapterTest {
     @Test
     fun `null threshold maps to the never sample sentinel`() {
         val delegate = FakeComposableSampler(intent = FakeSamplingIntent(threshold = null))
-        val adapter = KotlinComposableSamplerAdapter(delegate)
+        val adapter = KotlinComposableSamplerAdapter(delegate, NoopSdkErrorHandler)
 
         val intent = adapter.getSamplingIntent(
             OtelJavaContext.root(),
@@ -48,7 +49,7 @@ internal class KotlinComposableSamplerAdapterTest {
     @Test
     fun `non null threshold and reliability are preserved`() {
         val delegate = FakeComposableSampler(intent = FakeSamplingIntent(threshold = 7L, adjustedCountReliable = false))
-        val adapter = KotlinComposableSamplerAdapter(delegate)
+        val adapter = KotlinComposableSamplerAdapter(delegate, NoopSdkErrorHandler)
 
         val intent = adapter.getSamplingIntent(
             OtelJavaContext.root(),
@@ -66,7 +67,7 @@ internal class KotlinComposableSamplerAdapterTest {
     @Test
     fun `missing attributes provider yields empty java attributes`() {
         val delegate = FakeComposableSampler(intent = FakeSamplingIntent(attributesProvider = null))
-        val adapter = KotlinComposableSamplerAdapter(delegate)
+        val adapter = KotlinComposableSamplerAdapter(delegate, NoopSdkErrorHandler)
 
         val intent = adapter.getSamplingIntent(
             OtelJavaContext.root(),
@@ -88,7 +89,7 @@ internal class KotlinComposableSamplerAdapterTest {
         val delegate = FakeComposableSampler(
             intent = FakeSamplingIntent(attributesProvider = { nonCompatAttributes }),
         )
-        val adapter = KotlinComposableSamplerAdapter(delegate)
+        val adapter = KotlinComposableSamplerAdapter(delegate, NoopSdkErrorHandler)
 
         val intent = adapter.getSamplingIntent(
             OtelJavaContext.root(),
@@ -109,7 +110,7 @@ internal class KotlinComposableSamplerAdapterTest {
         val delegate = FakeComposableSampler(
             intent = FakeSamplingIntent(attributesProvider = { compatAttributes }),
         )
-        val adapter = KotlinComposableSamplerAdapter(delegate)
+        val adapter = KotlinComposableSamplerAdapter(delegate, NoopSdkErrorHandler)
 
         val intent = adapter.getSamplingIntent(
             OtelJavaContext.root(),
@@ -126,7 +127,7 @@ internal class KotlinComposableSamplerAdapterTest {
     @Test
     fun `missing trace state provider yields an identity updater`() {
         val delegate = FakeComposableSampler(intent = FakeSamplingIntent(traceStateProvider = null))
-        val adapter = KotlinComposableSamplerAdapter(delegate)
+        val adapter = KotlinComposableSamplerAdapter(delegate, NoopSdkErrorHandler)
 
         val intent = adapter.getSamplingIntent(
             OtelJavaContext.root(),
@@ -154,7 +155,7 @@ internal class KotlinComposableSamplerAdapterTest {
                 },
             ),
         )
-        val adapter = KotlinComposableSamplerAdapter(delegate)
+        val adapter = KotlinComposableSamplerAdapter(delegate, NoopSdkErrorHandler)
 
         val intent = adapter.getSamplingIntent(
             OtelJavaContext.root(),
@@ -174,7 +175,7 @@ internal class KotlinComposableSamplerAdapterTest {
     @Test
     fun `context name and span kind are forwarded to the delegate`() {
         val delegate = FakeComposableSampler()
-        val adapter = KotlinComposableSamplerAdapter(delegate)
+        val adapter = KotlinComposableSamplerAdapter(delegate, NoopSdkErrorHandler)
         val context = OtelJavaContext.root()
 
         adapter.getSamplingIntent(
